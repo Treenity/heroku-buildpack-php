@@ -80,6 +80,7 @@ mkdir -p $COMPOSER_HOME
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
+status s3_url
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
@@ -92,17 +93,24 @@ if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	notice_inline "Bootstrapping using ${s3_url}..."
 fi
 
+status HEROKU_PHP_PLATFORM_REPOSITORIES
+
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.25.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
+ls -al /app/.heroku/
+ls -al $build_dir/.heroku/
+
+status "downloading ${s3_url}php-min-7.0.25.tar.gz"
+
+curl_retry_on_18 --fail --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.25.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
 Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.5.2.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
+curl_retry_on_18 --fail --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.5.2.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
 rm $build_dir/.heroku/composer.tar.gz
 
